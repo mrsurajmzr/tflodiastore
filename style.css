@@ -1,0 +1,54 @@
+/* --- GLOBAL SETTINGS --- */
+body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+/* Scrollbar Hide */
+.hide-scroll::-webkit-scrollbar { display: none; }
+.hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* --- NAVIGATION STYLES --- */
+.nav-btn { color: #9ca3af; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.nav-btn.active .icon-box { background-color: #eff6ff; color: #2563eb; }
+.nav-btn.active span { color: #2563eb; font-weight: 700; }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+/* --- BANNERS --- */
+.banner-card {
+    min-width: 85%; height: 170px; border-radius: 20px; 
+    padding: 24px; position: relative; overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- CHIPS --- */
+.chip { padding: 8px 18px; border-radius: 99px; font-size: 13px; font-weight: 500; background: #f3f4f6; color: #4b5563; white-space: nowrap; transition: 0.2s; border: 1px solid transparent; }
+.chip.active { background: #1e1e1e; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.chip-free { padding: 8px 18px; border-radius: 99px; font-size: 13px; font-weight: 600; background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
+
+/* --- MODAL ANIMATIONS --- */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); transition: opacity 0.3s; }
+.modal.hidden { opacity: 0; pointer-events: none; }
+.modal-content { background: white; width: 100%; max-width: 480px; padding: 24px 24px 32px 24px; border-radius: 32px 32px 0 0; position: relative; animation: slideUp 0.3s cubic-bezier(0.19, 1, 0.22, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+
+@media (min-width: 640px) {
+    .modal { align-items: center; }
+    .modal-content { border-radius: 32px; margin: 20px; }
+}
+
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.animate-fade-in-down { animation: fadeDown 0.3s ease-out forwards; }
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- BUTTON STATES --- */
+button:disabled { opacity: 0.7; cursor: not-allowed; }
+.bg-gradient-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+}

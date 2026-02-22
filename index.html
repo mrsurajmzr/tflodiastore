@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>TFLODIA STORE</title>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FONTAWESOME ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CUSTOM CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Essential App Styles */
+        body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Skeleton Shimmer Animation */
+        .skeleton-box {
+            background: #f3f4f6;
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Modal Animation */
+        .modal-content { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* Fade In Animation */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Safe area for iOS devices */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+    </style>
+</head>
+
+<!-- FULL SCREEN FLEXBOX TO LOCK NAVIGATION AT BOTTOM -->
+<body class="bg-gray-100 text-gray-800 antialiased font-sans flex justify-center h-[100dvh] overflow-hidden selection:bg-blue-200">
+
+    <!-- MOBILE APP CONTAINER -->
+    <div class="w-full md:max-w-[480px] bg-gray-50 h-full flex flex-col shadow-2xl relative border-x border-gray-200 overflow-hidden">
+        
+        <!-- ========================================== -->
+        <!-- 1. HEADER (Fixed at Top) -->
+        <!-- ========================================== -->
+        <header class="flex-none bg-white/95 backdrop-blur-md border-b border-gray-100 z-30 pt-safe">
+            
+            <!-- Top Nav -->
+            <div class="flex justify-between items-center px-5 py-3">
+                <div class="flex items-center gap-3 select-none cursor-pointer" onclick="router('home')">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">T</div>
+                    <div class="flex flex-col">
+                        <h1 class="text-xl font-bold tracking-tight text-gray-900 leading-none">TFLODIA</h1>
+                        <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-0.5">Premium Store</span>
+                    </div>
+                </div>
+                <div id="authStatus" class="flex items-center">
+                    <button onclick="openModal('loginModal')" class="bg-blue-600 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-md active:scale-95 transition-transform hover:bg-blue-700">Login</button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="px-5 pb-2">
+                <div class="relative group">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                    <input type="text" id="searchInput" class="block w-full pl-11 pr-4 py-3 bg-gray-100 border border-transparent rounded-2xl text-sm font-medium focus:outline-none focus:border-blue-200 focus:bg-white transition-all shadow-inner placeholder-gray-400" placeholder="Search by title, tag, or chapter...">
+                </div>
+            </div>
+
+            <!-- Categories / Filters -->
+            <div class="px-5 pb-3 pt-1 flex gap-2 overflow-x-auto hide-scroll snap-x">
+                <button onclick="filterByCategory('all')" class="chip active snap-start whitespace-nowrap bg-gray-900 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-md">All Content</button>
+                <button onclick="filterByCategory('Combo')" class="chip snap-start whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-gray-50">Combos</button>
+                <button onclick="filterByCategory('Unit')" class="chip snap-start whitespace-nowrap bg-white border border-gray-200 text-gray-600 px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-gray-50">Units</button>
+                <button onclick="filterByCategory('Free')" class="chip-free snap-start whitespace-nowrap bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1"><i class="fa-solid fa-gift"></i> Free Zone</button>
+            </div>
+        </header>
+
+        <!-- ========================================== -->
+        <!-- 2. MAIN SCROLLABLE CONTENT AREA -->
+        <!-- ========================================== -->
+        <main class="flex-1 overflow-y-auto p-5 space-y-6 pb-6 bg-[#f8f9fa]" id="mainScroll">
+            
+            <!-- VIEW: HOME (Store) -->
+            <div id="view-home" class="fade-in">
+                
+                <!-- Banners Slider -->
+                <div class="flex gap-4 overflow-x-auto hide-scroll snap-x snap-mandatory mb-6 -mx-5 px-5 py-1">
+                    <div class="min-w-[85%] md:min-w-[90%] bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-3xl snap-center shadow-lg shadow-blue-200 relative overflow-hidden">
+                        <div class="relative z-10">
+                            <span class="bg-white/20 backdrop-blur-md text-[10px] font-bold px-2.5 py-1 rounded text-white uppercase tracking-widest border border-white/10">Special Offer</span>
+                            <h2 class="text-2xl font-bold text-white mt-3 leading-tight">Master Level <br>Combo Pack</h2>
+                            <p class="text-xs text-blue-100 mt-2 font-medium">Get 50% OFF today</p>
+                        </div>
+                        <i class="fa-solid fa-graduation-cap absolute -right-6 -bottom-6 text-[100px] text-white/10 rotate-12"></i>
+                    </div>
+                    <div class="min-w-[85%] md:min-w-[90%] bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-3xl snap-center shadow-lg shadow-orange-200 relative overflow-hidden">
+                        <div class="relative z-10">
+                            <span class="bg-white/20 backdrop-blur-md text-[10px] font-bold px-2.5 py-1 rounded text-white uppercase tracking-widest border border-white/10">Trending</span>
+                            <h2 class="text-2xl font-bold text-white mt-3 leading-tight">Handwritten <br>Short Notes</h2>
+                            <p class="text-xs text-orange-100 mt-2 font-medium">Best for quick revision</p>
+                        </div>
+                        <i class="fa-solid fa-pen-nib absolute -right-6 -bottom-6 text-[100px] text-white/10 rotate-12"></i>
+                    </div>
+                </div>
+
+                <!-- Grid Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-fire text-orange-500"></i> Trending Now</h2>
+                    <span id="totalCount" class="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded uppercase tracking-wider">Loading...</span>
+                </div>
+
+                <!-- Product Grid -->
+                <div id="productGrid" class="grid grid-cols-2 gap-3 md:gap-4">
+                    <!-- SKELETON PRE-LOADERS (Shows until JS loads data) -->
+                    <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2">
+                        <div class="skeleton-box h-32 w-full rounded-xl"></div>
+                        <div class="skeleton-box h-4 w-full rounded mt-1"></div>
+                        <div class="skeleton-box h-3 w-2/3 rounded"></div>
+                        <div class="skeleton-box h-8 w-full rounded-lg mt-2"></div>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2">
+                        <div class="skeleton-box h-32 w-full rounded-xl"></div>
+                        <div class="skeleton-box h-4 w-full rounded mt-1"></div>
+                        <div class="skeleton-box h-3 w-3/4 rounded"></div>
+                        <div class="skeleton-box h-8 w-full rounded-lg mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: LIBRARY (Orders) -->
+            <div id="view-orders" class="hidden fade-in min-h-[60vh]">
+                <div class="flex items-center gap-3 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-book-bookmark text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 leading-none">Your Library</h2>
+                        <p class="text-xs text-gray-500 font-medium mt-1">Access purchased content</p>
+                    </div>
+                </div>
+                <!-- Orders will be injected here -->
+                <div id="ordersList" class="space-y-4"></div>
+            </div>
+
+            <!-- VIEW: SUPPORT & FAQ -->
+            <div id="view-support" class="hidden fade-in">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Help Center</h2>
+                <p class="text-sm text-gray-500 mb-6 font-medium">Need help? We're here for you 24/7.</p>
+
+                <!-- Contact Cards -->
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <a href="https://wa.me/918895006915" target="_blank" class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col items-center gap-3 transition hover:border-green-300 active:scale-95 group">
+                        <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center group-hover:bg-green-100 transition"><i class="fa-brands fa-whatsapp text-2xl text-green-500"></i></div>
+                        <span class="text-xs font-bold text-gray-800">WhatsApp Support</span>
+                    </a>
+                    <a href="mailto:tflodia@gmail.com" class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col items-center gap-3 transition hover:border-blue-300 active:scale-95 group">
+                        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-100 transition"><i class="fa-solid fa-envelope text-2xl text-blue-500"></i></div>
+                        <span class="text-xs font-bold text-gray-800">Email Support</span>
+                    </a>
+                </div>
+
+                <!-- FAQ Section -->
+                <h3 class="font-bold text-gray-400 mb-3 uppercase text-[10px] tracking-widest">Frequently Asked Questions</h3>
+                <div class="space-y-3">
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 cursor-pointer" onclick="this.querySelector('.faq-content').classList.toggle('hidden')">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-bold text-gray-800">How will I get my PDF?</span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                        <p class="faq-content hidden text-xs text-gray-500 mt-3 leading-relaxed pt-3 border-t border-gray-50">After manual payment verification by the admin, the PDF link will be sent directly to your registered email address and will also appear in your Library tab.</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 cursor-pointer" onclick="this.querySelector('.faq-content').classList.toggle('hidden')">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-bold text-gray-800">Can I share the PDF with friends?</span>
+                            <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                        <p class="faq-content hidden text-xs text-red-500 font-medium mt-3 leading-relaxed pt-3 border-t border-gray-50">No. Sharing or reselling the content is strictly prohibited under our Copyright Policy. Doing so will lead to a permanent account ban and legal action.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PROFILE -->
+            <div id="view-profile" class="hidden fade-in text-center">
+                <!-- User Card -->
+                <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mb-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-blue-50 to-white"></div>
+                    <div class="w-24 h-24 bg-blue-600 text-white rounded-full mx-auto flex items-center justify-center text-4xl mb-4 shadow-xl ring-4 ring-white relative z-10">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h2 id="profileName" class="text-2xl font-bold text-gray-900 leading-none relative z-10">Guest User</h2>
+                    <p id="profileEmail" class="text-xs text-gray-500 mt-2 font-medium relative z-10">Login to manage your profile</p>
+                </div>
+
+                <!-- Action List -->
+                <div class="space-y-3 px-1 text-left">
+                    <button onclick="router('orders')" class="w-full flex justify-between items-center bg-white border border-gray-100 shadow-sm p-4 rounded-2xl active:scale-95 transition">
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-book-open text-xs"></i></div><span class="text-sm font-bold text-gray-800">My Purchases</span></div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                    </button>
+                    <button onclick="navigator.share({title: 'TFLODIA Store', url: window.location.href})" class="w-full flex justify-between items-center bg-white border border-gray-100 shadow-sm p-4 rounded-2xl active:scale-95 transition">
+                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600"><i class="fa-solid fa-share-nodes text-xs"></i></div><span class="text-sm font-bold text-gray-800">Share Store</span></div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                    </button>
+                    
+                    <button onclick="logout()" id="logoutBtn" class="hidden w-full flex justify-between items-center bg-red-50 border border-red-100 p-4 rounded-2xl mt-6 active:scale-95 transition">
+                        <span class="text-sm font-bold text-red-600">Logout</span>
+                        <i class="fa-solid fa-arrow-right-from-bracket text-red-500"></i>
+                    </button>
+                </div>
+                
+                <p class="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-8">Version 1.0</p>
+            </div>
+
+        </main>
+
+        <!-- ========================================== -->
+        <!-- 3. BOTTOM NAVIGATION (Fixed at Bottom) -->
+        <!-- ========================================== -->
+        <nav class="flex-none bg-white border-t border-gray-100 flex justify-around pt-2 pb-safe z-40 shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+            <button onclick="router('home')" class="nav-btn active group flex-1 flex flex-col items-center" id="nav-home">
+                <div class="w-12 h-8 rounded-full flex items-center justify-center mb-1 transition-colors group-hover:bg-blue-50">
+                    <i class="fa-solid fa-house text-xl transition-transform group-active:scale-90 text-gray-400 group-[.active]:text-blue-600"></i>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-[.active]:text-blue-600">Home</span>
+            </button>
+            <button onclick="router('orders')" class="nav-btn group flex-1 flex flex-col items-center" id="nav-orders">
+                <div class="w-12 h-8 rounded-full flex items-center justify-center mb-1 transition-colors group-hover:bg-blue-50">
+                    <i class="fa-solid fa-book text-xl transition-transform group-active:scale-90 text-gray-400 group-[.active]:text-blue-600"></i>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-[.active]:text-blue-600">Library</span>
+            </button>
+            <button onclick="router('support')" class="nav-btn group flex-1 flex flex-col items-center" id="nav-support">
+                <div class="w-12 h-8 rounded-full flex items-center justify-center mb-1 transition-colors group-hover:bg-blue-50">
+                    <i class="fa-solid fa-headset text-xl transition-transform group-active:scale-90 text-gray-400 group-[.active]:text-blue-600"></i>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-[.active]:text-blue-600">Support</span>
+            </button>
+            <button onclick="router('profile')" class="nav-btn group flex-1 flex flex-col items-center" id="nav-profile">
+                <div class="w-12 h-8 rounded-full flex items-center justify-center mb-1 transition-colors group-hover:bg-blue-50">
+                    <i class="fa-solid fa-user text-xl transition-transform group-active:scale-90 text-gray-400 group-[.active]:text-blue-600"></i>
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-[.active]:text-blue-600">Profile</span>
+            </button>
+        </nav>
+
+    </div> <!-- End App Container -->
+
+    <!-- ========================================== -->
+    <!-- 4. MODALS (Overlays) -->
+    <!-- ========================================== -->
+
+    <!-- A. LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-end justify-center transition-opacity">
+        <div class="bg-white w-full max-w-[480px] p-6 rounded-t-3xl shadow-2xl modal-content relative">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h2 class="text-2xl font-bold mb-1 text-gray-900">Welcome Back 👋</h2>
+            <p class="text-gray-500 text-sm mb-6">Login to access your premium library.</p>
+            
+            <div class="space-y-3 mb-4">
+                <input type="email" id="loginEmail" placeholder="Email Address" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium">
+                <input type="password" id="loginPass" placeholder="Password" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium">
+            </div>
+            
+            <div class="text-right mb-6">
+                <span onclick="switchAuth('forgot')" class="text-blue-600 text-xs font-bold cursor-pointer hover:underline">Forgot Password?</span>
+            </div>
+            
+            <button onclick="handleLogin()" id="btnLogin" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 active:scale-95 transition-all">Login</button>
+            <p class="text-center text-sm text-gray-500 mt-5 font-medium">New User? <span onclick="switchAuth('register')" class="text-blue-600 font-bold cursor-pointer">Sign Up</span></p>
+            
+            <button onclick="closeModal('loginModal')" class="absolute top-6 right-6 w-8 h-8 bg-gray-100 rounded-full flex justify-center items-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- B. REGISTER MODAL (With OTP) -->
+    <div id="registerModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-end justify-center transition-opacity">
+        <div class="bg-white w-full max-w-[480px] p-6 rounded-t-3xl shadow-2xl modal-content relative pb-safe">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h2 class="text-2xl font-bold mb-1 text-gray-900">Create Account 🚀</h2>
+            <p class="text-gray-500 text-sm mb-6">Join TFLODIA to unlock premium resources.</p>
+            
+            <!-- Step 1: Form Details -->
+            <div id="regStep1" class="space-y-3">
+                <input type="text" id="rName" placeholder="Full Name" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl outline-none focus:border-blue-500 text-sm font-medium">
+                <input type="email" id="rEmail" placeholder="Email Address (OTP will be sent)" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl outline-none focus:border-blue-500 text-sm font-medium">
+                <input type="password" id="rPass" placeholder="Create Password" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl outline-none focus:border-blue-500 text-sm font-medium">
+                <input type="tel" id="rPhone" placeholder="Mobile Number" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl outline-none focus:border-blue-500 text-sm font-medium">
+                <button onclick="sendOtp('register')" id="btnSendOtp" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl mt-3 active:scale-95 transition-all">Verify Email</button>
+            </div>
+
+            <!-- Step 2: OTP Entry -->
+            <div id="regStep2" class="hidden space-y-4">
+                <div class="bg-blue-50 text-blue-700 p-4 rounded-xl text-xs font-bold text-center border border-blue-100 flex items-center justify-center gap-2"><i class="fa-solid fa-envelope-circle-check text-lg"></i> OTP sent to your email! Check Inbox/Spam.</div>
+                <input type="number" id="rOtp" placeholder="Enter 6-digit OTP" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl text-center font-bold tracking-[0.3em] text-xl outline-none focus:border-blue-500">
+                <button onclick="verifyAndRegister()" id="btnVerifyReg" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-all shadow-lg shadow-green-200">Confirm & Create Account</button>
+                <button onclick="document.getElementById('regStep2').classList.add('hidden'); document.getElementById('regStep1').classList.remove('hidden');" class="w-full text-gray-500 text-xs font-bold py-2">Change Email / Go Back</button>
+            </div>
+            
+            <p class="text-center text-sm text-gray-500 mt-5 font-medium">Already a member? <span onclick="switchAuth('login')" class="text-blue-600 font-bold cursor-pointer">Login</span></p>
+            <button onclick="closeModal('registerModal')" class="absolute top-6 right-6 w-8 h-8 bg-gray-100 rounded-full flex justify-center items-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- C. FORGOT PASSWORD MODAL (With OTP) -->
+    <div id="forgotModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-end justify-center transition-opacity">
+        <div class="bg-white w-full max-w-[480px] p-6 rounded-t-3xl shadow-2xl modal-content relative pb-safe">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h2 class="text-2xl font-bold mb-1 text-gray-900">Reset Password</h2>
+            
+            <!-- Step 1: Email -->
+            <div id="forgotStep1" class="space-y-4">
+                <p class="text-gray-500 text-sm mb-2">Enter your registered email to receive an OTP.</p>
+                <input type="email" id="fEmail" placeholder="Registered Email Address" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm outline-none focus:border-blue-500">
+                <button onclick="sendOtp('forgot')" id="btnForgotOtp" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-all">Send Recovery OTP</button>
+            </div>
+
+            <!-- Step 2: OTP & New Password -->
+            <div id="forgotStep2" class="hidden space-y-4">
+                <p class="text-gray-500 text-sm mb-2 text-center">Enter the OTP sent to your email.</p>
+                <input type="number" id="fOtp" placeholder="6-digit OTP" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl text-center font-bold tracking-[0.3em] text-lg outline-none focus:border-blue-500">
+                <input type="password" id="fNewPass" placeholder="Enter New Password" class="w-full bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm outline-none focus:border-blue-500">
+                <button onclick="resetPassword()" id="btnReset" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-all shadow-lg shadow-green-200">Update Password</button>
+            </div>
+            
+            <p class="text-center text-sm text-gray-500 mt-5 font-medium"><span onclick="switchAuth('login')" class="text-blue-600 font-bold cursor-pointer">Back to Login</span></p>
+            <button onclick="closeModal('forgotModal')" class="absolute top-6 right-6 w-8 h-8 bg-gray-100 rounded-full flex justify-center items-center text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- D. BUY / PAYMENT MODAL (With QR & Copy UPI) -->
+    <div id="buyModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-end justify-center transition-opacity">
+        <div class="bg-white w-full max-w-[480px] p-6 rounded-t-3xl shadow-2xl modal-content relative pb-safe">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4"></div>
+            
+            <!-- Product Brief -->
+            <div class="flex gap-4 items-center mb-5 border-b border-gray-100 pb-5">
+                <img id="buyImg" src="" class="w-16 h-16 rounded-xl object-cover border border-gray-200 shadow-sm">
+                <div class="flex-1">
+                    <span id="buyType" class="text-[9px] font-bold uppercase bg-blue-100 text-blue-600 px-2 py-0.5 rounded tracking-widest mb-1 inline-block">PDF</span>
+                    <h3 id="buyTitle" class="font-bold text-gray-900 line-clamp-2 text-sm leading-tight">Product Title</h3>
+                    <div class="text-xl font-bold text-blue-600 mt-1">₹<span id="buyPrice">0</span></div>
+                </div>
+            </div>
+
+            <div class="max-h-[55vh] overflow-y-auto hide-scroll pb-2">
+                <!-- MANDATORY DECLARATION -->
+                <label class="flex items-start gap-3 p-4 bg-red-50 rounded-2xl border border-red-100 cursor-pointer mb-5 select-none transition-colors hover:bg-red-100">
+                    <input type="checkbox" id="copyrightCheck" class="mt-0.5 w-5 h-5 accent-red-600 rounded">
+                    <div class="text-xs text-red-800 font-medium leading-relaxed">I declare that I will <b>not share, resell, or distribute</b> this content. Legal action will be taken and account will be banned for copyright violations.</div>
+                </label>
+
+                <!-- PAYMENT DETAILS (Revealed after checkbox) -->
+                <div id="paymentSection" class="hidden space-y-4">
+                    <!-- QR Code -->
+                    <div class="text-center">
+                        <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 inline-block">
+                            <img id="payQR" src="/QR.jpg" class="w-32 h-32 object-contain mix-blend-multiply">
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-widest">Scan with any UPI App</p>
+                    </div>
+
+                    <!-- UPI ID & Copy -->
+                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center flex justify-between items-center px-4">
+                        <span class="text-sm font-mono font-bold text-gray-800">tflodia@ybl</span>
+                        <button onclick="navigator.clipboard.writeText('tflodia@upi'); showToast('UPI Copied!')" class="text-blue-600 text-[10px] font-bold uppercase active:scale-95 bg-white px-3 py-1.5 rounded border border-blue-200 shadow-sm">Copy ID</button>
+                    </div>
+
+                    <!-- Trx ID Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-receipt absolute left-4 top-4 text-gray-400"></i>
+                        <input type="text" id="trxId" placeholder="Enter 12-Digit Transaction ID" class="w-full text-center bg-gray-50 border-2 border-gray-200 p-3 pl-10 rounded-xl font-mono text-sm uppercase outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" id="buyProdId">
+            <button onclick="confirmOrder()" id="btnConfirmOrder" disabled class="w-full bg-gray-300 text-white font-bold py-4 rounded-xl mt-2 flex justify-center items-center gap-2 transition-all cursor-not-allowed text-sm">
+                <i class="fa-solid fa-lock"></i> Accept Declaration First
+            </button>
+            
+            <button onclick="closeModal('buyModal')" class="absolute top-6 right-6 w-8 h-8 bg-gray-100 rounded-full flex justify-center items-center text-gray-400 hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. TOAST NOTIFICATION -->
+    <!-- ========================================== -->
+    <div id="toast" class="fixed top-8 left-1/2 -translate-x-1/2 bg-gray-900/95 backdrop-blur-md text-white px-6 py-3.5 rounded-full text-xs font-bold shadow-2xl opacity-0 transition-all duration-300 pointer-events-none z-[100] border border-gray-700 whitespace-nowrap flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-blue-400"></i>
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script src="script.js"></script>
+
+</body>
+</html>

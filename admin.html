@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TFLODIA | Secure Admin Panel</title>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FONTAWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn.active { background-color: #1e293b; color: white; border-color: #1e293b; box-shadow: 0 4px 12px rgba(30, 41, 59, 0.25); }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom selection for Trx ID */
+        .trx-text::selection { background: #bfdbfe; color: #1e3a8a; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased overflow-x-hidden">
+
+    <!-- ========================================== -->
+    <!-- 1. ADMIN LOGIN SCREEN (BEAUTIFUL OVERLAY) -->
+    <!-- ========================================== -->
+    <div id="loginScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 px-4 transition-opacity duration-500">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+            
+            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-blue-100">
+                <i class="fa-solid fa-shield-halved text-4xl text-blue-600"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-gray-900 mb-1">Admin Portal</h2>
+            <p class="text-sm text-gray-500 mb-6 font-medium">Enter your secure PIN to access</p>
+            
+            <input type="password" id="adminPinInput" placeholder="• • • • •" class="w-full bg-gray-50 border-2 border-gray-200 focus:border-blue-600 rounded-xl p-4 text-center text-2xl tracking-[0.5em] font-bold outline-none transition-all mb-6">
+            
+            <button onclick="verifyPin()" id="btnPin" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                Unlock Dashboard <i class="fa-solid fa-unlock-keyhole"></i>
+            </button>
+            <p id="pinError" class="text-red-500 text-sm font-bold mt-4 hidden"><i class="fa-solid fa-circle-exclamation"></i> Incorrect PIN</p>
+        </div>
+        <p class="text-gray-500 mt-6 text-xs uppercase tracking-widest font-bold text-white/50">TFLODIA Secure System</p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. MAIN DASHBOARD CONTENT -->
+    <!-- ========================================== -->
+    <div id="dashboardContent" class="hidden min-h-screen pb-20 fade-in">
+        
+        <!-- HEADER -->
+        <header class="glass-header sticky top-0 z-40 px-4 py-4 md:px-8 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl flex items-center justify-center text-white shadow-lg border border-gray-700">
+                    <i class="fa-solid fa-user-tie text-xl text-blue-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-gray-900 leading-none">Command Center</h1>
+                    <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-1 block">Tflodia Store Admin</span>
+                </div>
+            </div>
+            <button onclick="fetchAdminOrders()" id="refreshBtn" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition active:scale-95 flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right" id="refreshIcon"></i> <span class="hidden md:inline">Sync Data</span>
+            </button>
+        </header>
+
+        <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+            
+            <!-- STATS WIDGETS -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Total Orders -->
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-gray-50 text-7xl group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider relative z-10">Total Orders</p>
+                    <h3 class="text-4xl font-bold text-gray-900 mt-2 relative z-10" id="statTotal">0</h3>
+                </div>
+                <!-- Pending -->
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 p-5 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-amber-100/50 text-7xl group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <p class="text-[11px] text-amber-600 font-bold uppercase tracking-wider relative z-10">Pending Action</p>
+                    <h3 class="text-4xl font-bold text-amber-700 mt-2 relative z-10" id="statPending">0</h3>
+                </div>
+                <!-- Approved -->
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-emerald-100/50 text-7xl group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-circle-check"></i></div>
+                    <p class="text-[11px] text-emerald-600 font-bold uppercase tracking-wider relative z-10">Approved & Sent</p>
+                    <h3 class="text-4xl font-bold text-emerald-700 mt-2 relative z-10" id="statApproved">0</h3>
+                </div>
+                <!-- Status -->
+                <div class="bg-gradient-to-br from-gray-900 to-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl text-white relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 text-gray-700/50 text-7xl"><i class="fa-solid fa-server"></i></div>
+                    <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider relative z-10">System Status</p>
+                    <h3 class="text-xl font-bold text-green-400 mt-3 relative z-10 flex items-center gap-2">
+                        <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span></span> Live
+                    </h3>
+                </div>
+            </div>
+
+            <!-- FILTERS & SEARCH BAR -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex gap-2 w-full md:w-auto overflow-x-auto hide-scroll pb-1 md:pb-0">
+                    <button onclick="filterOrders('All')" class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap">All Orders</button>
+                    <button onclick="filterOrders('Pending')" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap flex items-center gap-2">
+                        Pending <span id="badgePending" class="bg-amber-500 text-white px-2 py-0.5 rounded-md text-[10px] shadow-sm">0</span>
+                    </button>
+                    <button onclick="filterOrders('Approved')" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap">Approved</button>
+                </div>
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="text" id="adminSearch" onkeyup="searchOrders()" placeholder="Search Trx ID, Email or Order ID..." class="w-full bg-gray-50 border border-gray-200 py-3 pl-11 pr-4 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors">
+                </div>
+            </div>
+
+            <!-- LOADER -->
+            <div id="loader" class="text-center py-20">
+                <div class="inline-block relative w-16 h-16">
+                    <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full"></div>
+                    <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <p class="text-gray-500 font-bold tracking-widest uppercase text-xs mt-4">Syncing secure data...</p>
+            </div>
+
+            <!-- ORDERS GRID -->
+            <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 hidden">
+                <!-- Orders Injected Here -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-8 left-1/2 -translate-x-1/2 bg-gray-900/95 backdrop-blur-sm text-white px-6 py-3.5 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all duration-300 pointer-events-none z-[100] flex items-center gap-3 border border-gray-700">
+        <i class="fa-solid fa-bell text-blue-400 animate-bounce"></i> <span id="toastMsg">Notification</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ========================================== -->
+    <script>
+        // 1. CONFIGURATION
+        const ADMIN_PIN = "12345"; // CHANGE THIS PIN FOR SECURITY
+        const API_URL = "https://script.google.com/macros/s/AKfycbxOCHte0q1KVWczDMC1lEeCCAPnF2QMLRZgEoCkx2Poq3TFKbweYJmZ4qyv3bUBRbqe/exec"; // PASTE YOUR API URL HERE
+        
+        let allOrders = [];
+        let currentFilter = 'All';
+
+        // 2. PIN AUTHENTICATION LOGIC
+        function verifyPin() {
+            const input = document.getElementById('adminPinInput').value;
+            const btn = document.getElementById('btnPin');
+            
+            if(input === ADMIN_PIN) {
+                // Success
+                btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Verified`;
+                btn.classList.replace('bg-gray-900', 'bg-green-600');
+                document.getElementById('pinError').classList.add('hidden');
+                
+                setTimeout(() => {
+                    document.getElementById('loginScreen').classList.add('opacity-0', 'pointer-events-none');
+                    document.getElementById('dashboardContent').classList.remove('hidden');
+                    fetchAdminOrders(); // Fetch data only after login
+                }, 500);
+            } else {
+                // Failed
+                document.getElementById('pinError').classList.remove('hidden');
+                document.getElementById('adminPinInput').value = "";
+                document.getElementById('adminPinInput').focus();
+            }
+        }
+
+        // Allow pressing Enter to login
+        document.getElementById('adminPinInput').addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { event.preventDefault(); verifyPin(); }
+        });
+
+        // 3. FETCH DATA FROM API
+        async function fetchAdminOrders() {
+            const container = document.getElementById('ordersContainer');
+            const loader = document.getElementById('loader');
+            const refreshIcon = document.getElementById('refreshIcon');
+
+            container.classList.add('hidden');
+            loader.classList.remove('hidden');
+            refreshIcon.classList.add('fa-spin');
+
+            try {
+                let res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getAllOrders' })
+                });
+                let result = await res.json();
+
+                if(result.success) {
+                    allOrders = result.data.reverse(); // Newest first
+                    updateStats();
+                    renderOrders(allOrders);
+                } else {
+                    showToast("Failed to fetch orders! " + result.message);
+                }
+            } catch (e) {
+                showToast("Network Error! Check connection.");
+            }
+
+            loader.classList.add('hidden');
+            container.classList.remove('hidden');
+            refreshIcon.classList.remove('fa-spin');
+        }
+
+        // 4. UPDATE DASHBOARD STATS
+        function updateStats() {
+            const pending = allOrders.filter(o => o[4] === 'Pending').length;
+            const approved = allOrders.filter(o => o[4] === 'Approved').length;
+
+            document.getElementById('statTotal').innerText = allOrders.length;
+            document.getElementById('statPending').innerText = pending;
+            document.getElementById('statApproved').innerText = approved;
+            document.getElementById('badgePending').innerText = pending;
+        }
+
+        // 5. RENDER ORDERS IN UI
+        function renderOrders(list) {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = "";
+
+            if(list.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                        <i class="fa-solid fa-folder-open text-6xl text-gray-200 mb-4 block"></i>
+                        <h3 class="text-lg font-bold text-gray-800">No Orders Found</h3>
+                        <p class="text-gray-500 font-medium text-sm mt-1">There are no orders matching your criteria.</p>
+                    </div>`;
+                return;
+            }
+
+            list.forEach(o => {
+                // Data Array mapping: [0:OrderID, 1:UserID, 2:ProductID, 3:TrxID, 4:Status, 5:Date, 6:UserEmail]
+                let isPending = o[4] === 'Pending';
+                
+                // Badges
+                let statusBadge = isPending 
+                    ? `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border border-amber-200 shadow-sm flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> Action Required</span>`
+                    : `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border border-emerald-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-check"></i> Approved</span>`;
+
+                // Buttons
+                let actionBtn = isPending
+                    ? `<button onclick="approveOrder('${o[0]}')" id="btn-${o[0]}" class="w-full bg-gray-900 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl mt-4 shadow-lg transition-all duration-300 active:scale-95 flex justify-center items-center gap-2">Verify Payment & Approve <i class="fa-solid fa-arrow-right"></i></button>`
+                    : `<button disabled class="w-full bg-gray-50 text-emerald-600 font-bold py-3.5 rounded-xl mt-4 border border-emerald-200 cursor-not-allowed flex items-center justify-center gap-2"><i class="fa-solid fa-envelope-circle-check text-lg"></i> PDF Emailed to User</button>`;
+
+                // HTML Card Design
+                let card = `
+                    <div class="bg-white p-6 rounded-3xl border ${isPending ? 'border-amber-300 shadow-lg shadow-amber-100/50 relative overflow-hidden' : 'border-gray-100 shadow-sm'} transition-all hover:shadow-xl">
+                        
+                        ${isPending ? '<div class="absolute top-0 left-0 w-full h-1 bg-amber-400"></div>' : ''}
+
+                        <div class="flex justify-between items-start mb-5">
+                            <div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Order ID</p>
+                                <h4 class="font-bold text-gray-900 text-sm">#${o[0]}</h4>
+                            </div>
+                            ${statusBadge}
+                        </div>
+
+                        <!-- HIGHLIGHTED TRANSACTION ID AREA -->
+                        <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-4">
+                            <p class="text-[10px] text-blue-600 font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5"><i class="fa-solid fa-receipt"></i> Transaction ID / UTR</p>
+                            <p class="font-mono text-xl font-bold text-gray-900 tracking-widest uppercase trx-text select-all">${o[3]}</p>
+                            <p class="text-[10px] text-gray-400 mt-1 font-medium">Match this UTR with your PhonePe/GPay app.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+                                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Product ID</span>
+                                <span class="text-sm font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">${o[2]}</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+                                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Date</span>
+                                <span class="text-xs font-bold text-gray-700">${new Date(o[5]).toLocaleString('en-IN', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})}</span>
+                            </div>
+                            <div class="py-2">
+                                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1">User Email Address</span>
+                                <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">
+                                    <i class="fa-regular fa-envelope text-gray-400"></i>
+                                    <span class="text-sm font-bold text-gray-800 break-all select-all">${o[6]}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${actionBtn}
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        // 6. FILTER & SEARCH LOGIC
+        function filterOrders(status) {
+            currentFilter = status;
+            // Update Active Tab UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if(status === 'All') renderOrders(allOrders);
+            else renderOrders(allOrders.filter(o => o[4] === status));
+        }
+
+        function searchOrders() {
+            const query = document.getElementById('adminSearch').value.toLowerCase();
+            const filtered = allOrders.filter(o => {
+                const text = `${o[0]} ${o[3]} ${o[6]}`.toLowerCase(); // OrderID, TrxID, Email
+                return text.includes(query);
+            });
+            renderOrders(filtered);
+            
+            // Remove active states from tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        // 7. APPROVE ORDER & TRIGGER EMAIL API
+        async function approveOrder(orderId) {
+            if(!confirm(`⚠️ SECURE ACTION\n\nDid you receive the exact payment in your bank for this UTR?\n\nIf Yes, click OK. The system will mark it approved and auto-email the PDF to the user.`)) return;
+
+            const btn = document.getElementById(`btn-${orderId}`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
+            btn.disabled = true;
+            btn.classList.add('opacity-70');
+
+            try {
+                let res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'approveOrder', orderId: orderId })
+                });
+                let result = await res.json();
+
+                if(result.success) {
+                    showToast("✅ " + result.message);
+                    fetchAdminOrders(); // Auto-refresh data
+                } else {
+                    showToast("❌ Error: " + result.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-70');
+                }
+            } catch(e) {
+                showToast("❌ Network Error! Please try again.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-70');
+            }
+        }
+
+        // 8. TOAST NOTIFICATION UTILITY
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
